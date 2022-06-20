@@ -80,7 +80,7 @@ proc createLogicalDevice(physicalDevice: VkPhysicalDevice, surface: VkSurfaceKHR
     indices = findQueueFamilies(physicalDevice, surface)
     uniqueQueueFamilies = [indices.graphicsFamily, indices.presentFamily].toHashSet
   var
-    queuePriority = 1f
+    queuePriority = 1.0
     queueCreateInfos = newSeq[VkDeviceQueueCreateInfo]()
 
   for queueFamily in uniqueQueueFamilies:
@@ -400,7 +400,7 @@ proc createGraphicsPipeline(device: VkDevice, swapChainExtent: VkExtent2D, rende
       logicOp: VK_LOGIC_OP_COPY, # optional
       attachmentCount: 1,
       pAttachments: colorBlendAttachment.addr,
-      blendConstants: [0f, 0f, 0f, 0f], # optional
+      blendConstants: [0.0, 0.0, 0.0, 0.0], # optional
     )
     dynamicStates = [VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_LINE_WIDTH]
     dynamicState = VkPipelineDynamicStateCreateInfo(
@@ -463,7 +463,7 @@ proc createRenderPass(device: VkDevice, swapChainImageFormat: VkFormat): VkRende
       pColorAttachments: colorAttachmentRef.addr,
     )
     dependency = VkSubpassDependency(
-      srcSubpass: VK_SUBPASS_EXTERNAL,
+      srcSubpass: cast[uint32](VK_SUBPASS_EXTERNAL),
       dstSubpass: 0,
       srcStageMask: VkPipelineStageFlags(0x00000400), #VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
       srcAccessMask: VkAccessFlags(0),
@@ -539,7 +539,7 @@ proc createCommandBuffers(
       quit("failed to begin recording command buffer")
     var
       clearColor = VkClearValue(
-        color: VkClearColorValue(float32: [0f, 0f, 0f, 1f]),
+        color: VkClearColorValue(float32: [0.0, 0.0, 0.0, 1.0]),
       )
       renderPassInfo = VkRenderPassBeginInfo(
         sType: VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -584,9 +584,11 @@ var
   semaphores: Semaphores
 
 proc init*(glfwExtensions: cstringArray, glfwExtensionCount: uint32, createSurface: CreateSurfaceProc) =
-  vkPreload();
+  #vkPreload();
+
+  echo vkInit()
+
   instance = createInstance(glfwExtensions, glfwExtensionCount)
-  doAssert vkInit(instance)
 
   surface = createSurface(instance)
   physicalDevice = pickPhysicalDevice(instance, surface)
