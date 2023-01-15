@@ -1,4 +1,4 @@
-import nimgl/vulkan
+import ../src/vulkan
 import sets
 import bitops
 
@@ -593,11 +593,9 @@ var
   semaphores: Semaphores
 
 proc init*(glfwExtensions: cstringArray, glfwExtensionCount: uint32, createSurface: CreateSurfaceProc) =
-  #vkPreload();
-
-  echo vkInit()
-
+  vkPreload();
   instance = createInstance(glfwExtensions, glfwExtensionCount)
+  echo vkInit(instance)
 
   surface = createSurface(instance)
   physicalDevice = pickPhysicalDevice(instance, surface)
