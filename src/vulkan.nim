@@ -6,6 +6,7 @@
 ## Any edits will be overwritten by the generator.
 
 var vkGetProc: proc(procName: cstring): pointer {.cdecl.}
+var currInst: pointer = nil
 
 when not defined(vkCustomLoader):
   import dynlib
@@ -21,13 +22,13 @@ when not defined(vkCustomLoader):
   if isNil(vkHandleDLL):
     quit("could not load: " & vkDLL)
 
-  let vkGetProcAddress = cast[proc(s: cstring): pointer {.stdcall.}](symAddr(vkHandleDLL, "vkGetInstanceProcAddr"))
+  let vkGetProcAddress = cast[proc(inst: pointer, s: cstring): pointer {.stdcall.}](symAddr(vkHandleDLL, "vkGetInstanceProcAddr"))
   if vkGetProcAddress == nil:
     quit("failed to load `vkGetInstanceProcAddr` from " & vkDLL)
 
   vkGetProc = proc(procName: cstring): pointer {.cdecl.} =
     when defined(windows):
-      result = vkGetProcAddress(procName)
+      result = vkGetProcAddress(currInst, procName)
       if result != nil:
         return
     result = symAddr(vkHandleDLL, procName)
@@ -1441,13 +1442,13 @@ type
   VkSamplerReductionModeEXT* = VkSamplerReductionMode
   VkShaderFloatControlsIndependenceKHR* = VkShaderFloatControlsIndependence
   VkDriverIdKHR* = VkDriverId
-  PFN_vkInternalAllocationNotification* = proc(pUserData: pointer; size: csize; allocationType: VkInternalAllocationType; allocationScope: VkSystemAllocationScope) {.cdecl.}
-  PFN_vkInternalFreeNotification* = proc(pUserData: pointer; size: csize; allocationType: VkInternalAllocationType; allocationScope: VkSystemAllocationScope) {.cdecl.}
-  PFN_vkReallocationFunction* = proc(pUserData: pointer; pOriginal: pointer; size: csize; alignment: csize; allocationScope: VkSystemAllocationScope): pointer {.cdecl.}
-  PFN_vkAllocationFunction* = proc(pUserData: pointer; size: csize; alignment: csize; allocationScope: VkSystemAllocationScope): pointer {.cdecl.}
+  PFN_vkInternalAllocationNotification* = proc(pUserData: pointer; size: csize_t; allocationType: VkInternalAllocationType; allocationScope: VkSystemAllocationScope) {.cdecl.}
+  PFN_vkInternalFreeNotification* = proc(pUserData: pointer; size: csize_t; allocationType: VkInternalAllocationType; allocationScope: VkSystemAllocationScope) {.cdecl.}
+  PFN_vkReallocationFunction* = proc(pUserData: pointer; pOriginal: pointer; size: csize_t; alignment: csize_t; allocationScope: VkSystemAllocationScope): pointer {.cdecl.}
+  PFN_vkAllocationFunction* = proc(pUserData: pointer; size: csize_t; alignment: csize_t; allocationScope: VkSystemAllocationScope): pointer {.cdecl.}
   PFN_vkFreeFunction* = proc(pUserData: pointer; pMemory: pointer) {.cdecl.}
   PFN_vkVoidFunction* = proc() {.cdecl.}
-  PFN_vkDebugReportCallbackEXT* = proc(flags: VkDebugReportFlagsEXT; objectType: VkDebugReportObjectTypeEXT; cbObject: uint64; location: csize; messageCode:  int32; pLayerPrefix: cstring; pMessage: cstring; pUserData: pointer): VkBool32 {.cdecl.}
+  PFN_vkDebugReportCallbackEXT* = proc(flags: VkDebugReportFlagsEXT; objectType: VkDebugReportObjectTypeEXT; cbObject: uint64; location: csize_t; messageCode:  int32; pLayerPrefix: cstring; pMessage: cstring; pUserData: pointer): VkBool32 {.cdecl.}
   PFN_vkDebugUtilsMessengerCallbackEXT* = proc(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT, messageTypes: VkDebugUtilsMessageTypeFlagsEXT, pCallbackData: VkDebugUtilsMessengerCallbackDataEXT, userData: pointer): VkBool32 {.cdecl.}
 
   VkOffset2D* = object
@@ -9815,7 +9816,6 @@ proc newVkPhysicalDevice4444FormatsFeaturesEXT*(sType: VkStructureType, pNext: p
 
 # Procs
 var
-  vkCreateInstance*: proc(pCreateInfo: ptr VkInstanceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pInstance: ptr VkInstance ): VkResult {.stdcall.}
   vkDestroyInstance*: proc(instance: VkInstance, pAllocator: ptr VkAllocationCallbacks ): void {.stdcall.}
   vkEnumeratePhysicalDevices*: proc(instance: VkInstance, pPhysicalDeviceCount: ptr uint32 , pPhysicalDevices: ptr VkPhysicalDevice ): VkResult {.stdcall.}
   vkGetDeviceProcAddr*: proc(device: VkDevice, pName: cstring ): PFN_vkVoidFunction {.stdcall.}
@@ -9828,9 +9828,6 @@ var
   vkGetPhysicalDeviceImageFormatProperties*: proc(physicalDevice: VkPhysicalDevice, format: VkFormat, `type`: VkImageType, tiling: VkImageTiling, usage: VkImageUsageFlags, flags: VkImageCreateFlags, pImageFormatProperties: ptr VkImageFormatProperties ): VkResult {.stdcall.}
   vkCreateDevice*: proc(physicalDevice: VkPhysicalDevice, pCreateInfo: ptr VkDeviceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pDevice: ptr VkDevice ): VkResult {.stdcall.}
   vkDestroyDevice*: proc(device: VkDevice, pAllocator: ptr VkAllocationCallbacks ): void {.stdcall.}
-  vkEnumerateInstanceVersion*: proc(pApiVersion: ptr uint32 ): VkResult {.stdcall.}
-  vkEnumerateInstanceLayerProperties*: proc(pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}
-  vkEnumerateInstanceExtensionProperties*: proc(pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}
   vkEnumerateDeviceLayerProperties*: proc(physicalDevice: VkPhysicalDevice, pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}
   vkEnumerateDeviceExtensionProperties*: proc(physicalDevice: VkPhysicalDevice, pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}
   vkGetDeviceQueue*: proc(device: VkDevice, queueFamilyIndex: uint32, queueIndex: uint32, pQueue: ptr VkQueue ): void {.stdcall.}
@@ -10210,7 +10207,6 @@ var
 
 # Vulkan 1_0
 proc vkLoad1_0*() =
-  vkCreateInstance = cast[proc(pCreateInfo: ptr VkInstanceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pInstance: ptr VkInstance ): VkResult {.stdcall.}](vkGetProc("vkCreateInstance"))
   vkDestroyInstance = cast[proc(instance: VkInstance, pAllocator: ptr VkAllocationCallbacks ): void {.stdcall.}](vkGetProc("vkDestroyInstance"))
   vkEnumeratePhysicalDevices = cast[proc(instance: VkInstance, pPhysicalDeviceCount: ptr uint32 , pPhysicalDevices: ptr VkPhysicalDevice ): VkResult {.stdcall.}](vkGetProc("vkEnumeratePhysicalDevices"))
   vkGetPhysicalDeviceFeatures = cast[proc(physicalDevice: VkPhysicalDevice, pFeatures: ptr VkPhysicalDeviceFeatures ): void {.stdcall.}](vkGetProc("vkGetPhysicalDeviceFeatures"))
@@ -10223,9 +10219,7 @@ proc vkLoad1_0*() =
   vkGetDeviceProcAddr = cast[proc(device: VkDevice, pName: cstring ): PFN_vkVoidFunction {.stdcall.}](vkGetProc("vkGetDeviceProcAddr"))
   vkCreateDevice = cast[proc(physicalDevice: VkPhysicalDevice, pCreateInfo: ptr VkDeviceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pDevice: ptr VkDevice ): VkResult {.stdcall.}](vkGetProc("vkCreateDevice"))
   vkDestroyDevice = cast[proc(device: VkDevice, pAllocator: ptr VkAllocationCallbacks ): void {.stdcall.}](vkGetProc("vkDestroyDevice"))
-  vkEnumerateInstanceExtensionProperties = cast[proc(pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceExtensionProperties"))
   vkEnumerateDeviceExtensionProperties = cast[proc(physicalDevice: VkPhysicalDevice, pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateDeviceExtensionProperties"))
-  vkEnumerateInstanceLayerProperties = cast[proc(pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceLayerProperties"))
   vkEnumerateDeviceLayerProperties = cast[proc(physicalDevice: VkPhysicalDevice, pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateDeviceLayerProperties"))
   vkGetDeviceQueue = cast[proc(device: VkDevice, queueFamilyIndex: uint32, queueIndex: uint32, pQueue: ptr VkQueue ): void {.stdcall.}](vkGetProc("vkGetDeviceQueue"))
   vkQueueSubmit = cast[proc(queue: VkQueue, submitCount: uint32, pSubmits: ptr VkSubmitInfo , fence: VkFence): VkResult {.stdcall.}](vkGetProc("vkQueueSubmit"))
@@ -10350,7 +10344,6 @@ proc vkLoad1_0*() =
 
 # Vulkan 1_1
 proc vkLoad1_1*() =
-  vkEnumerateInstanceVersion = cast[proc(pApiVersion: ptr uint32 ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceVersion"))
   vkBindBufferMemory2 = cast[proc(device: VkDevice, bindInfoCount: uint32, pBindInfos: ptr VkBindBufferMemoryInfo ): VkResult {.stdcall.}](vkGetProc("vkBindBufferMemory2"))
   vkBindImageMemory2 = cast[proc(device: VkDevice, bindInfoCount: uint32, pBindInfos: ptr VkBindImageMemoryInfo ): VkResult {.stdcall.}](vkGetProc("vkBindImageMemory2"))
   vkGetDeviceGroupPeerMemoryFeatures = cast[proc(device: VkDevice, heapIndex: uint32, localDeviceIndex: uint32, remoteDeviceIndex: uint32, pPeerMemoryFeatures: ptr VkPeerMemoryFeatureFlags ): void {.stdcall.}](vkGetProc("vkGetDeviceGroupPeerMemoryFeatures"))
@@ -10378,7 +10371,7 @@ proc vkLoad1_1*() =
   vkGetPhysicalDeviceExternalFenceProperties = cast[proc(physicalDevice: VkPhysicalDevice, pExternalFenceInfo: ptr VkPhysicalDeviceExternalFenceInfo , pExternalFenceProperties: ptr VkExternalFenceProperties ): void {.stdcall.}](vkGetProc("vkGetPhysicalDeviceExternalFenceProperties"))
   vkGetPhysicalDeviceExternalSemaphoreProperties = cast[proc(physicalDevice: VkPhysicalDevice, pExternalSemaphoreInfo: ptr VkPhysicalDeviceExternalSemaphoreInfo , pExternalSemaphoreProperties: ptr VkExternalSemaphoreProperties ): void {.stdcall.}](vkGetProc("vkGetPhysicalDeviceExternalSemaphoreProperties"))
   vkGetDescriptorSetLayoutSupport = cast[proc(device: VkDevice, pCreateInfo: ptr VkDescriptorSetLayoutCreateInfo , pSupport: ptr VkDescriptorSetLayoutSupport ): void {.stdcall.}](vkGetProc("vkGetDescriptorSetLayoutSupport"))
-
+  
 # Vulkan 1_2
 proc vkLoad1_2*() =
   vkCmdDrawIndirectCount = cast[proc(commandBuffer: VkCommandBuffer, buffer: VkBuffer, offset: VkDeviceSize, countBuffer: VkBuffer, countBufferOffset: VkDeviceSize, maxDrawCount: uint32, stride: uint32): void {.stdcall.}](vkGetProc("vkCmdDrawIndirectCount"))
@@ -10835,7 +10828,24 @@ proc loadVK_EXT_directfb_surface*() =
   vkCreateDirectFBSurfaceEXT = cast[proc(instance: VkInstance, pCreateInfo: ptr VkDirectFBSurfaceCreateInfoEXT , pAllocator: ptr VkAllocationCallbacks , pSurface: ptr VkSurfaceKHR ): VkResult {.stdcall.}](vkGetProc("vkCreateDirectFBSurfaceEXT"))
   vkGetPhysicalDeviceDirectFBPresentationSupportEXT = cast[proc(physicalDevice: VkPhysicalDevice, queueFamilyIndex: uint32, dfb: ptr IDirectFB ): VkBool32 {.stdcall.}](vkGetProc("vkGetPhysicalDeviceDirectFBPresentationSupportEXT"))
 
-proc vkInit*(load1_0: bool = true, load1_1: bool = true): bool =
+var
+  vkCreateInstance*: proc(pCreateInfo: ptr VkInstanceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pInstance: ptr VkInstance ): VkResult {.stdcall.}
+  vkEnumerateInstanceExtensionProperties*: proc(pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}
+  vkEnumerateInstanceLayerProperties*: proc(pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}
+  vkEnumerateInstanceVersion*: proc(pApiVersion: ptr uint32 ): VkResult {.stdcall.}
+
+proc vkPreload*(load1_1: bool = true) =
+  vkGetInstanceProcAddr = cast[proc(instance: VkInstance, pName: cstring ): PFN_vkVoidFunction {.stdcall.}](symAddr(vkHandleDLL, "vkGetInstanceProcAddr"))
+
+  vkCreateInstance = cast[proc(pCreateInfo: ptr VkInstanceCreateInfo , pAllocator: ptr VkAllocationCallbacks , pInstance: ptr VkInstance ): VkResult {.stdcall.}](vkGetProc("vkCreateInstance"))
+  vkEnumerateInstanceExtensionProperties = cast[proc(pLayerName: cstring , pPropertyCount: ptr uint32 , pProperties: ptr VkExtensionProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceExtensionProperties"))
+  vkEnumerateInstanceLayerProperties = cast[proc(pPropertyCount: ptr uint32 , pProperties: ptr VkLayerProperties ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceLayerProperties"))
+
+  if load1_1:
+    vkEnumerateInstanceVersion = cast[proc(pApiVersion: ptr uint32 ): VkResult {.stdcall.}](vkGetProc("vkEnumerateInstanceVersion"))
+
+proc vkInit*(instance: VkInstance, load1_0: bool = true, load1_1: bool = true): bool =
+  currInst = cast[pointer](instance)
   if load1_0:
     vkLoad1_0()
   when not defined(macosx):
