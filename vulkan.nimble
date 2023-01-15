@@ -12,7 +12,7 @@ skipDirs    = @["tests"]
 requires "nim >= 1.0.0"
 
 task gen, "Generate bindings from source":
-  exec("nim c -d:ssl -r tools/generator.nim")
+  exec("nim c -d:ssl -d:release -r tools/generator.nim")
 
 task test, "Create basic triangle with Vulkan and GLFW":
   # Please https://github.com/nim-lang/nimble/issues/482
