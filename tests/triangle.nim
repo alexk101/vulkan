@@ -80,17 +80,26 @@ proc createLogicalDevice(physicalDevice: VkPhysicalDevice, surface: VkSurfaceKHR
     indices = findQueueFamilies(physicalDevice, surface)
     uniqueQueueFamilies = [indices.graphicsFamily, indices.presentFamily].toHashSet
   var
-    queuePriority = 1.0
+    queuePriority: float32 = 1.0.float32
     queueCreateInfos = newSeq[VkDeviceQueueCreateInfo]()
 
+  # sType: VkStructureType = VkStructureTypeDeviceQueueCreateInfo;
+  # pNext: pointer = nil; 
+  # flags: VkDeviceQueueCreateFlags = 0.VkDeviceQueueCreateFlags;
+  # queueFamilyIndex: uint32; 
+  # queueCount: uint32;
+  # pQueuePriorities: ptr float32
+
   for queueFamily in uniqueQueueFamilies:
-    let deviceQueueCreateInfo = newVkDeviceQueueCreateInfo(
-      sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      queueFamilyIndex = queueFamily,
-      queueCount = 1,
-      pQueuePriorities = queuePriority.addr
+    var deviceQueueCreateInfo 
+    = newVkDeviceQueueCreateInfo(
+      VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, 
+      nil, 0.VkDeviceQueueCreateFlags, 
+      queueFamily, 1.uint32, 
+      queuePriority.addr
     )
     queueCreateInfos.add(deviceQueueCreateInfo)
+    
 
   var
     deviceFeatures = newSeq[VkPhysicalDeviceFeatures](1)
@@ -164,7 +173,7 @@ proc createInstance(glfwExtensions: cstringArray, glfwExtensionCount: uint32): V
     engineVersion = vkMakeVersion(1, 0, 0),
     apiVersion = vkApiVersion1_1
   )
-
+  
   var instanceCreateInfo = newVkInstanceCreateInfo(
     pApplicationInfo = appInfo.addr,
     enabledExtensionCount = glfwExtensionCount,
@@ -400,7 +409,7 @@ proc createGraphicsPipeline(device: VkDevice, swapChainExtent: VkExtent2D, rende
       logicOp: VK_LOGIC_OP_COPY, # optional
       attachmentCount: 1,
       pAttachments: colorBlendAttachment.addr,
-      blendConstants: [0.0, 0.0, 0.0, 0.0], # optional
+      blendConstants: [0.0.float32, 0.0.float32, 0.0.float32, 0.0.float32], # optional
     )
     dynamicStates = [VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_LINE_WIDTH]
     dynamicState = VkPipelineDynamicStateCreateInfo(
@@ -539,7 +548,7 @@ proc createCommandBuffers(
       quit("failed to begin recording command buffer")
     var
       clearColor = VkClearValue(
-        color: VkClearColorValue(float32: [0.0, 0.0, 0.0, 1.0]),
+        color: VkClearColorValue(),
       )
       renderPassInfo = VkRenderPassBeginInfo(
         sType: VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
