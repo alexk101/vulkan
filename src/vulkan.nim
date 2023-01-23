@@ -75,6 +75,7 @@ const
   VK_MAX_DRIVER_INFO_SIZE_KHR* = VK_MAX_DRIVER_INFO_SIZE
   VK_SHADER_UNUSED_KHR* = (not 0'u32)
   VK_SHADER_UNUSED_NV* = VK_SHADER_UNUSED_KHR
+  VK_NULL_HANDLE* = 0
 
 type
   VkImageLayout* {.size: int32.sizeof.} = enum
@@ -10371,7 +10372,7 @@ proc vkLoad1_1*() =
   vkGetPhysicalDeviceExternalFenceProperties = cast[proc(physicalDevice: VkPhysicalDevice, pExternalFenceInfo: ptr VkPhysicalDeviceExternalFenceInfo , pExternalFenceProperties: ptr VkExternalFenceProperties ): void {.stdcall.}](vkGetProc("vkGetPhysicalDeviceExternalFenceProperties"))
   vkGetPhysicalDeviceExternalSemaphoreProperties = cast[proc(physicalDevice: VkPhysicalDevice, pExternalSemaphoreInfo: ptr VkPhysicalDeviceExternalSemaphoreInfo , pExternalSemaphoreProperties: ptr VkExternalSemaphoreProperties ): void {.stdcall.}](vkGetProc("vkGetPhysicalDeviceExternalSemaphoreProperties"))
   vkGetDescriptorSetLayoutSupport = cast[proc(device: VkDevice, pCreateInfo: ptr VkDescriptorSetLayoutCreateInfo , pSupport: ptr VkDescriptorSetLayoutSupport ): void {.stdcall.}](vkGetProc("vkGetDescriptorSetLayoutSupport"))
-  
+
 # Vulkan 1_2
 proc vkLoad1_2*() =
   vkCmdDrawIndirectCount = cast[proc(commandBuffer: VkCommandBuffer, buffer: VkBuffer, offset: VkDeviceSize, countBuffer: VkBuffer, countBufferOffset: VkDeviceSize, maxDrawCount: uint32, stride: uint32): void {.stdcall.}](vkGetProc("vkCmdDrawIndirectCount"))

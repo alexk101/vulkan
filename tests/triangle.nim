@@ -30,7 +30,6 @@ const
   deviceExtensions = ["VK_KHR_swapchain"]
   WIDTH* = 800
   HEIGHT* = 600
-  VK_NULL_HANDLE = 0
 
 loadVK_KHR_surface()
 loadVK_KHR_swapchain()

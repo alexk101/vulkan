@@ -306,6 +306,7 @@ proc genEnums(node: XmlNode, output: var string) =
           enumValue = "VK_MAX_DEVICE_GROUP_SIZE"
 
         output.add("  {enumName}* = {enumValue}\n".fmt)
+      output.add("  VK_NULL_HANDLE* = 0\n")
       continue
 
     if not inType:
