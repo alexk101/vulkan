@@ -17,4 +17,4 @@ task gen, "Generate bindings from source":
 task test, "Create basic triangle with Vulkan and GLFW":
   # Please https://github.com/nim-lang/nimble/issues/482
   requires "https://github.com/nimgl/glfw"
-  exec("nim --verbosity:3 c -r tests/test.nim")
+  exec("nim c -r tests/test.nim")

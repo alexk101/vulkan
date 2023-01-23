@@ -26,7 +26,7 @@ type
     renderFinished: VkSemaphore
 
 const
-  validationLayers = ["VK_LAYER_LUNARG_standard_validation"]
+  validationLayers = ["VK_LAYER_KHRONOS_validation"]
   deviceExtensions = ["VK_KHR_swapchain"]
   WIDTH* = 800
   HEIGHT* = 600
@@ -190,8 +190,7 @@ proc createInstance(glfwExtensions: cstringArray, glfwExtensionCount: uint32): V
   var extensions = newSeq[VkExtensionProperties](extensionCount)
   discard vkEnumerateInstanceExtensionProperties(nil, extensionCount.addr, extensions[0].addr)
 
-  # disabled for now
-  #checkValidationLayers()
+  checkValidationLayers()
 
 proc pickPhysicalDevice(instance: VkInstance, surface: VkSurfaceKHR): VkPhysicalDevice =
   var deviceCount: uint32 = 0
@@ -595,7 +594,7 @@ var
 proc init*(glfwExtensions: cstringArray, glfwExtensionCount: uint32, createSurface: CreateSurfaceProc) =
   vkPreload();
   instance = createInstance(glfwExtensions, glfwExtensionCount)
-  echo vkInit(instance)
+  discard vkInit(instance)
 
   surface = createSurface(instance)
   physicalDevice = pickPhysicalDevice(instance, surface)
